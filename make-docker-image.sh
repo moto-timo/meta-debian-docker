@@ -6,8 +6,12 @@ FLAG_DOCKER_INSTALL=0
 usage() {
     echo "Usage: $0 [-i] [-h]"
     echo "       i: Install Docker"
-    echo "       h: Ptint help message"
+    echo "       h: Print help message"
     exit 0
+}
+
+command_exists () {
+    type "$1" &> /dev/null ;
 }
 
 # Check options
@@ -29,9 +33,12 @@ done
 shift $((OPTIND - 1))
 
 # Check distro information
-if [ `which apt-get` ]; then
+if [ -x "$(command -v apt-get)" ]; then
     # Debian and Ubuntu
     sudo apt-get install lsb-release
+elif [ -x "$(command -v dnf)" ]; then
+    # Fedora 23+
+    sudo dnf install redhat-lsb-core
 else
     # Other distro
     echo "ERROR: Not tested (e.g. yum)"
@@ -62,6 +69,14 @@ if [ $FLAG_DOCKER_INSTALL -ne 0 ]; then
             echo "ERROR: Not tested on $DISTCODE"
             exit 1
 	fi
+    elif [ $DISTNAME = 'Fedora' ]; then
+        if [ $DISTCODE = 'TwentyThree' ]; then
+            sudo dnf install -y curl
+            curl -sSL https://get.docker.com/ | sh
+        else
+            echo "ERROR: Not tested on $DISTCODE"
+            exit 1
+        fi
     else
         echo "ERROR: Not tested"
         exit 1
